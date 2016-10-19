@@ -1,0 +1,288 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Game - Monster Coming</title> 
+
+<script>var zon = true;</script>
+<script src="http://code.createjs.com/createjs-2015.05.21.min.js"></script>
+<script src="http://d309knd7es5f10.cloudfront.net/zim_1.5.2_min.js"></script> 
+
+
+<style>
+	body {margin:0px; padding:0px; background-color:#000;}
+	#myCanvas {position:absolute; background-color:#3F437A;}
+</style>
+
+<script>
+
+var scaling = "fit";
+var width = 879;
+var height = 680;
+var frame = new zim.Frame(scaling, width, height); 
+frame.on("ready", function(){
+	
+	var stage = frame.stage;
+	var stageW = frame.width;
+	var stageH = frame.height;
+
+	
+	
+	
+	var imagePath = "images/";
+	var manifest =[{id:"backing",src:"background.png"},{id:"wave",src:"wave.png"},{id:"button1",src:"button1.png"},{id:"button11",src:"Layer2.png"},{id:"button2",src:"button2.png"},{id:"button21",src:"Layer1.png"},{id:"button3",src:"button3.png"},{id:"button31",src:"Layer.png"},{id:"monster",src:"monster.png"}];
+	var preload = new createjs.LoadQueue(false, imagePath);
+	preload.loadManifest(manifest);
+	preload.on("complete",game);
+
+	function game(){
+		
+		var backing = new createjs.Bitmap(preload.getResult("backing"));
+		backing.setTransform(0,0,.4,.4);
+		stage.addChildAt(backing);
+		
+		var wave = new createjs.Bitmap(preload.getResult("wave"));
+		stage.addChildAt(wave,1);
+		var wave2 = new createjs.Bitmap(preload.getResult("wave"));
+		stage.addChildAt(wave2,1);
+		var scrollerSpeed =1;
+		var scroller= new zim.Scroller(wave,wave2,scrollerSpeed,1,false,0);
+		wave.setTransform(stageW/9,-stageH/9,.4,.4);
+		wave2.setTransform(stageW/9,-stageH/9,.4,.4);
+
+		var monsters = new createjs.Container();
+		stage.addChild(monsters);
+		var interval = setInterval(makeMonster,1000);
+		var count = 0; var maxCount = 10;
+
+		function makeMonster(){			
+			count++;
+        	// if (count > maxCount) {
+         //    	clearInterval(interval);
+        	// }
+        	// if (monsters.numChildren >= maxCount){
+        	// 	return;
+        	// } 
+        	var monster = new createjs.Bitmap(preload.getResult("monster"));
+        	var monsterX= Math.random()/8;
+			monster.setTransform(520,620,monsterX,monsterX);
+			stage.addChildAt(monster,2);
+			monsters.addChild(monster);
+			// monster.cache(0,0,50,50);// leave later
+			monster.alpha = 0;
+			zim.animate(monster, {alpha:1}, 1000);
+			monster.speed = 8;
+			monster.dampX = new zim.Damp(monster.x);
+			monster.dampY = new zim.Damp(monster.y);		
+			
+			monster.directionX = zim.rand(-1,1,false); monster.targetX = monster.x;
+			monster.directionY = zim.rand(-1,1,false); monster.targetY = monster.y;
+
+		};
+
+
+		createjs.Ticker.framerate = 60;
+		var myTicker = createjs.Ticker.on("tick",animate);
+		function animate(){
+
+			var monster;
+			 for(var i=0; i<monsters.numChildren; i++){
+			 	monster=monsters.getChildAt(i);
+
+				if(monster.targetX>stageW || monster.targetX<0){		
+					monster.directionX *=-1;
+
+				}else if(monster.targetY>stageH || monster.targetY<0){
+					monster.directionY *=-1;
+				}
+
+				monster.targetX += monster.directionX*monster.speed;
+				monster.targetY += monster.directionY*monster.speed;
+
+				monster.x= monster.dampX.convert(monster.targetX);
+				monster.y= monster.dampY.convert(monster.targetY);
+
+				if(monsters.numChildren>15){
+					endGame();
+				}
+			 }				
+				stage.update();				
+		};
+		
+
+		
+		var waters = new createjs.Container();
+		stage.addChild(waters);		
+		function removeWater(t){
+			waters.removeChild(t.target);
+		}
+		
+		var waterTotal = 0;
+		var water1 = new createjs.Bitmap(preload.getResult("button1"));
+		water1.setTransform(138,278,0.35,0.35);
+		zim.centerReg(water1);
+		var water2 = new createjs.Bitmap(preload.getResult("button11"));
+		water2.setTransform(138,278,0.35,0.35);
+		zim.centerReg(water2);
+		var button1 = new createjs.Bitmap(preload.getResult("button1"));
+		button1.setTransform(138,278,0.38,0.38);
+		zim.centerReg(button1);
+		button1.animate=function(){
+			var waterInterval = setInterval(creatWave,100);
+			var waterCount = 0;
+			function creatWave(){
+				waterCount ++;
+				if(waterCount>2){
+					clearInterval(waterInterval);
+					return;
+				}				
+				water1.alpha = 1;
+				waters.addChild(water1);
+				createjs.Tween.get(water1).to({x:148,y:258,alpha:0.2,scaleX:0.8, scaleY:0.8},2000).call(removeWater);
+				
+				water2.alpha = 1;
+				waters.addChild(water2);
+				createjs.Tween.get(water2).to({x:148,y:258,alpha:0.2,scaleX:0.8,scaleY:0.8},2000).call(removeWater);
+			}
+		}
+		var water3 = new createjs.Bitmap(preload.getResult("button2"));
+		water3.setTransform(322,238,0.35,0.35);
+		zim.centerReg(water3);
+		var water4 = new createjs.Bitmap(preload.getResult("button21"));
+		water4.setTransform(322,238,0.35,0.35);
+		zim.centerReg(water4);
+		var button2 = new createjs.Bitmap(preload.getResult("button2"));
+		button2.setTransform(322,238,0.4,0.4);
+		zim.centerReg(button2);
+
+		button2.animate=function(){
+			var waterInterval = setInterval(creatWave,100);
+			var waterCount = 0;
+			function creatWave(){
+				waterCount ++;
+				if(waterCount>2){
+					clearInterval(waterInterval);
+					return;
+				}				
+				water3.alpha = 1;
+				waters.addChild(water3);
+				createjs.Tween.get(water3).to({x:362,y:228,alpha:0,scaleX:1,scaleY:1},2000).call(removeWater);				
+				water4.alpha = 1;
+				waters.addChild(water4);
+				createjs.Tween.get(water4).to({x:362,y:228,alpha:0,scaleX:0.8,scaleY:0.8},2000).call(removeWater);
+			}
+		}
+
+		var water5 = new createjs.Bitmap(preload.getResult("button31"));
+		water5.setTransform(585,468,0.35,0.35);
+		zim.centerReg(water5);
+		var water6 = new createjs.Bitmap(preload.getResult("button3"));
+		water6.setTransform(585,468,0.35,0.35);
+		zim.centerReg(water6);
+		var button3 = new createjs.Bitmap(preload.getResult("button3"));
+		button3.setTransform(585,468,0.38,0.38);
+		zim.centerReg(button3);
+		button3.animate=function(){
+			var waterInterval = setInterval(creatWave,500);
+			var waterCount = 0;
+			function creatWave(){
+				waterCount ++;
+				if(waterCount>3){
+					clearInterval(waterInterval);
+					return;
+				}				
+				water5.alpha = 1;
+				waters.addChild(water5);
+				createjs.Tween.get(water5).to({alpha:0,scaleX:1.3, scaleY:1.3},3000).call(removeWater);				
+				water6.alpha = 1;
+				waters.addChild(water6);
+				createjs.Tween.get(water6).to({alpha:0,scaleX:1,scaleY:1},3000).call(removeWater);
+			}
+		}
+		
+		var buttons = new createjs.Container();
+		buttons.addChild(button1);
+		buttons.addChild(button2);
+		buttons.addChild(button3);
+		stage.addChild(buttons);
+		buttons.cursor = "pointer";			
+		buttons.on("click",removeMonster);
+
+		
+		var audioPath= "sound/";
+		var sounds = [{id:"sound1",src:"m1.mp3"},{id:"sound2",src:"m2.mp3"},{id:"sound3",src:"m3.mp3"},{id:"restart",src:"restart.wav"}];
+		var queue = new createjs.LoadQueue(false,audioPath);
+		queue.installPlugin(createjs.Sound);
+		queue.loadManifest(sounds);
+		queue.on('complete',removeMonster,restart);
+		
+		function removeMonster(e){
+			zog('click');
+			var monster;
+			for(var m=0; m<monsters.numChildren; m++){
+				monster = monsters.getChildAt(m);				
+				if(zim.hitTestBounds(monster,e.target)){
+					zog('hit'); 
+					monsters.removeChild(monster);
+
+					var sound = sounds[Math.floor(Math.random()*sounds.length)];
+					createjs.Sound.play(sound.id);	
+					e.target.animate();	
+				}
+				stage.update();	
+			}
+					
+		};
+		stage.update();			
+		
+
+
+		
+
+
+		var lable = new zim.Label("Game over",15,"Gill","white");
+		var endPane = new zim.Pane(stage,300,100,"Game Over","orange");
+		var button = new zim.Button(200,50,"RESTART");
+		zim.centerReg(button);
+		button.y = 80;
+		button.on("click",restart);
+		endPane.addChild(button);
+
+		function restart(){
+			
+			endPane.hide();
+			zim.scale(buttons,1);
+			stage.addChild(buttons);
+			stage.addChild(monsters);
+			interval = setInterval(makeMonster,1000);
+			myTicker = createjs.Ticker.on("tick",animate);
+			createjs.Sound.play("restart");
+		}
+
+		function endGame(){
+			zog('endGame');
+			createjs.Ticker.off('tick',myTicker);
+			clearInterval(interval);
+			stage.removeChild(buttons);	
+			stage.removeChild(monsters);
+			monsters.removeAllChildren();			
+			endPane.show();
+		}
+			
+		stage.update();	
+	};
+
+		
+
+});
+
+
+</script>
+
+
+</head>
+
+<body>
+<!-- canvas with id="myCanvas" is made by zim Frame -->
+</body>
+</html>
